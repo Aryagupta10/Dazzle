@@ -8,7 +8,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Update payment status</title>
+        <title>Show Bill</title>
         <style>
     #navbar{
     position: sticky;
@@ -19,17 +19,6 @@
     height: 60px;
     width: 100%;
 }
-.form-group input{
-        text-align: center;
-        display: block;
-        width: 310px;
-        padding: 1px;
-        border: 2px solid gray;
-        margin: 6px auto;
-        border-radius: 10px;
-        font-size: 15px;
-        font-family: 'Baloo Tamma 2', cursive;
-    }
 
 #navbar::before{
     content: "";
@@ -53,7 +42,7 @@
 }
 
 
-/Navigation Bar: List Items/
+/*Navigation Bar: List Items*/
 #navbar ul{
     display: flex;
     list-style: none;
@@ -80,7 +69,7 @@
     background-color: white;
 }
 
-/Dropdown menu css/
+/*Dropdown menu css*/
 #navbar li:hover .submenu > li{
     display: block;
     flex-direction: column;
@@ -185,106 +174,129 @@
 
 <div class="heading">
                 <h1>&mdash; Dazzle 'n Dine &mdash; </h1>
-                <h4>&mdash; A-12, Vasant Kunj, Delhi-110095 &mdash;
+                <h4> Cannaught Place, New Delhi, India
                     <br>
-                       &mdash; Email : dazzlendine@gmail.com &mdash;
+                        Email : dazzlendine@gmail.com 
                         <br>
-                        &mdash; Contact no. +91 9298082089 &mdash; </h4>
-                
-                <h4><b>&mdash; Collect Cash on Delivery &mdash;</b> </h4>
+                         Contact no. +91 0000000000  </h4>
+                <h2><b>&mdash; BILL &mdash;</b> </h2>
+                <h4><b><span>&#42;</span> Pay by Cash on Delivery(COD)</b> </h4>
                 
             </div>
 <center>
-    <br><br>
-    <form >
-            <div class="form-group">
-                <label><b>Payment Received</b></label>
-                <input type="Float" name="amount" placeholder="Enter Payment Received">
-            </div>
-      <br><br><br><br>
-    
-            <button class="btn" name="btn_proceed">Proceed to complete delivery</button>
     
     
-              </form> 
-    </div>  
+    
+    
+    
+      <table class="table sticky">
+            <thead>
+                
+  <tr>
+    <th>S.No</th>
+    <th>Product Name</th>
+    <th>category</th>
+    <th>Price</th>
+    <th>Quantity</th>
+     <th>Sub Total</th>
+  </tr>
+  
+            </thead>
+            <h3>Product Details</h3>
+              <%
+                  String email=(String)session.getAttribute("user");
+                  
+                try {
+                Class.forName("com.mysql.jdbc.Driver");
+                  Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/project", "root", "");
+                  Statement stmt = conn.createStatement();
+                 int total=0;
+                    int sno=0;
+                   int gst,amt;
+                    
+                    PreparedStatement pstat = conn.prepareStatement("Select sum(price) from mycart where email=? ");
+                    pstat.setString(1, email);
+                    PreparedStatement psta = conn.prepareStatement("Select cname from customer where email=? ");
+                    psta.setString(1, email);
+                    
+                    PreparedStatement pstaa = conn.prepareStatement("Select address from customer where email=? ");
+                    pstaa.setString(1, email);
+                    
+                    PreparedStatement pstaaa = conn.prepareStatement("Select phone_number from customer where email=? ");
+                    pstaaa.setString(1, email);
+                    
+                    ResultSet rss = pstat.executeQuery();
+                    ResultSet rsss = psta.executeQuery();
+                    while (rsss.next()) {%>
+                    <p> Customer Name : <%=rsss.getString(1)%> <br></p>
 
-
-
-
-
-
-<%
-    try{
-        if(request.getParameter("btn_proceed")!=null)
-        {
-            int amt = Math.round(Float.parseFloat(request.getParameter("amount"))); 
             
+             <% }     
+                    ResultSet rsss1 = pstaa.executeQuery();
+                    while (rsss1.next()) {%>
+                    <p> Customer Address: <%=rsss1.getString(1)%> <br></p>
+
             
-            String employee=(String)session.getAttribute("emp");
-            Connection conn=null;
-            Statement stat=null;
-            Class.forName("com.mysql.jdbc.Driver");
-            conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/project","root","");
-            stat=conn.createStatement();
+             <% }     
+                    ResultSet rsss2 = pstaaa.executeQuery();
+                    while (rsss2.next()) {%>
+                    <p> Customer Contact No. : <%=rsss2.getString(1)%> <br></p>
+
             
-            PreparedStatement pst = conn.prepareStatement("Select customer_id,Bill_Amount from assigned_order where employee_id=? and payment_status like ('Not Paid')");
-            pst.setString(1, employee);
-            
-            ResultSet rs = pst.executeQuery();
-            if(!rs.next())
-            {
-                 %>
-                <script type="text/javascript">
-                    alert(" No Order Yet !!!!");
-                </script>
-                <%
-            }
-            rs.first();
-            int amnt=0;
-             amnt=Math.round(rs.getFloat(2));
-            //out.println("Payment To Be Collected (in Rs.):"+amnt);
-            
-            String customer=rs.getString(1);
+             <% }    
+
+                    ResultSet rs1 = stmt.executeQuery("Select * from food_items inner join mycart  where mycart.fname=food_items.Fname and mycart.email='"+email+"' ");
+                    while (rs1.next()) {
+                        sno=sno+1;
             %>
-            <center><p>
-                    Payment To Be Collected (in Rs.):<%=amnt%> /-         </p> </center>
-                <%
-            if(amt==amnt)     
-            {
-                 %>
-                <script type="text/javascript">
-                    alert(" Payment Received !!!!");
-                </script>
-                <%
-                
-                PreparedStatement query_to_delete=conn.prepareStatement("DELETE FROM mycart WHERE email=?");
-                query_to_delete.setString(1, customer);
-                query_to_delete.executeUpdate();
-                
-                PreparedStatement query_to_update=conn.prepareStatement("update employee set employee_status='Available' WHERE email=?");
-                query_to_update.setString(1, employee);
-                query_to_update.executeUpdate();
-                
-                PreparedStatement query_to_update_payment_status=conn.prepareStatement("update assigned_order set payment_status='Paid' WHERE customer_id=?");
-                query_to_update_payment_status.setString(1, customer);
-                query_to_update_payment_status.executeUpdate();
-                
-                response.sendRedirect("order_complete.jsp");
-            }
-            else
-            {
-                %>
-                <script type="text/javascript">
-                    alert("Inappropriate Payment Received !!!!");
-                </script>
-                <%
-                
-            }
-        }
-        
-    }catch(Exception ex ){ex.printStackTrace();}
+            
+            <tbody>
+                <tr>
+                    <td><%out.println(sno);%></td>
+                    <td><%=rs1.getString(1)%></td>
+                    <td><%=rs1.getString(3)%></td>
+                    <td><%=rs1.getString(2)%></td>
+                    <td><%=rs1.getString(8)%></td>
+                    <td><%=rs1.getString(9)%></td>
+                    
+                </tr>
+            </tbody>
+             
+            <%}
+ResultSet rs2 = stmt.executeQuery("Select sum(total) from mycart where email='"+email+"' ");
+    while(rs2.next())
+    {
+        total=rs2.getInt(1);
+    }
+            while (rss.next()) {
+                    gst = (total/20) ;
+                    amt=total+gst;
 
-%>
-</body>
+            %>
+            
+            <caption style="caption-side:bottom" > <br><br> Total (in Rs.): <%out.println(total);%> /-
+                            <br> TAX (in Rs.): <%=gst%> /-
+                            <br> Total Payable Amount(in Rs.):<%=amt%> /-</caption> 
+                        
+                        <% }
+                         
+            %>
+            <%
+                } catch (Exception e) {
+                    out.println(e);
+                }
+
+
+            %>
+       
+        
+
+   
+    
+    
+    </table> 
+                    </center>
+    </body>
+    <h3> <center>&mdash;&mdash;&mdash; THANK YOU &mdash;&mdash;&mdash; <br><br>
+        <a href="cnfrm_order.jsp">Confirm Order</a></center></h3>
 </html>

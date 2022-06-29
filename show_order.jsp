@@ -8,7 +8,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Update payment status</title>
+        <title>Show Order</title>
         <style>
     #navbar{
     position: sticky;
@@ -19,17 +19,6 @@
     height: 60px;
     width: 100%;
 }
-.form-group input{
-        text-align: center;
-        display: block;
-        width: 310px;
-        padding: 1px;
-        border: 2px solid gray;
-        margin: 6px auto;
-        border-radius: 10px;
-        font-size: 15px;
-        font-family: 'Baloo Tamma 2', cursive;
-    }
 
 #navbar::before{
     content: "";
@@ -184,107 +173,51 @@
        
 
 <div class="heading">
-                <h1>&mdash; Dazzle 'n Dine &mdash; </h1>
-                <h4>&mdash; A-12, Vasant Kunj, Delhi-110095 &mdash;
-                    <br>
-                       &mdash; Email : dazzlendine@gmail.com &mdash;
-                        <br>
-                        &mdash; Contact no. +91 9298082089 &mdash; </h4>
-                
-                <h4><b>&mdash; Collect Cash on Delivery &mdash;</b> </h4>
-                
+                <h3>&mdash; ORDER DETAILS &mdash; </h3>
             </div>
 <center>
-    <br><br>
-    <form >
-            <div class="form-group">
-                <label><b>Payment Received</b></label>
-                <input type="Float" name="amount" placeholder="Enter Payment Received">
-            </div>
-      <br><br><br><br>
-    
-            <button class="btn" name="btn_proceed">Proceed to complete delivery</button>
-    
-    
-              </form> 
-    </div>  
-
-
-
-
-
-
-<%
-    try{
-        if(request.getParameter("btn_proceed")!=null)
-        {
-            int amt = Math.round(Float.parseFloat(request.getParameter("amount"))); 
+      <table class="table sticky">
+            <thead>
+                <tr>
+                  
+                    <th>Item Name</th>
+                    <th>Price(in Rs.)</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+              <%
+                  String customer=request.getParameter("customer"); 
+                
+                try {
+                    Class.forName("com.mysql.jdbc.Driver");
+                    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/project", "root", "");
+                    Statement stmt = conn.createStatement();
+                    PreparedStatement pst = conn.prepareStatement("Select * from mycart where email=? ");
+                    pst.setString(1, customer);
             
-            
-            String employee=(String)session.getAttribute("emp");
-            Connection conn=null;
-            Statement stat=null;
-            Class.forName("com.mysql.jdbc.Driver");
-            conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/project","root","");
-            stat=conn.createStatement();
-            
-            PreparedStatement pst = conn.prepareStatement("Select customer_id,Bill_Amount from assigned_order where employee_id=? and payment_status like ('Not Paid')");
-            pst.setString(1, employee);
-            
-            ResultSet rs = pst.executeQuery();
-            if(!rs.next())
-            {
-                 %>
-                <script type="text/javascript">
-                    alert(" No Order Yet !!!!");
-                </script>
-                <%
-            }
-            rs.first();
-            int amnt=0;
-             amnt=Math.round(rs.getFloat(2));
-            //out.println("Payment To Be Collected (in Rs.):"+amnt);
-            
-            String customer=rs.getString(1);
+                    ResultSet rs = pst.executeQuery();  
+                    while (rs.next()) {
             %>
-            <center><p>
-                    Payment To Be Collected (in Rs.):<%=amnt%> /-         </p> </center>
-                <%
-            if(amt==amnt)     
-            {
-                 %>
-                <script type="text/javascript">
-                    alert(" Payment Received !!!!");
-                </script>
-                <%
-                
-                PreparedStatement query_to_delete=conn.prepareStatement("DELETE FROM mycart WHERE email=?");
-                query_to_delete.setString(1, customer);
-                query_to_delete.executeUpdate();
-                
-                PreparedStatement query_to_update=conn.prepareStatement("update employee set employee_status='Available' WHERE email=?");
-                query_to_update.setString(1, employee);
-                query_to_update.executeUpdate();
-                
-                PreparedStatement query_to_update_payment_status=conn.prepareStatement("update assigned_order set payment_status='Paid' WHERE customer_id=?");
-                query_to_update_payment_status.setString(1, customer);
-                query_to_update_payment_status.executeUpdate();
-                
-                response.sendRedirect("order_complete.jsp");
-            }
-            else
-            {
-                %>
-                <script type="text/javascript">
-                    alert("Inappropriate Payment Received !!!!");
-                </script>
-                <%
-                
-            }
-        }
-        
-    }catch(Exception ex ){ex.printStackTrace();}
+            <tbody>
+                <tr>
+                    <td><%=rs.getString(2)%></td>
+                    <td><%=rs.getString(3)%></td>
+                    <td><%=rs.getString(4)%></td>
+                    
+                </tr>
+            </tbody>
+            <%}
+            %>
+            <%
+                } catch (Exception e) {
+                    out.println(e);
+                }
 
-%>
-</body>
+
+            %>
+        </table> 
+        
+</center>
+
+    </body>
 </html>

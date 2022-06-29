@@ -1,15 +1,25 @@
+
 <%@page import="java.sql.*"%>
 <%@page import="java.sql.Statement"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.lang.*"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
+
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Update payment status</title>
-        <style>
+        <title>Employee Status</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+<style>
+    body{
+        font-family: 'Baloo Bhai 2', cursive;
+        margin: 0px;
+        padding: 0px;
+        
+        background-color: rgba(255, 99, 71, 0.5)
+        color: #ffffff;
+    }
     #navbar{
     position: sticky;
     display: flex;
@@ -19,17 +29,6 @@
     height: 60px;
     width: 100%;
 }
-.form-group input{
-        text-align: center;
-        display: block;
-        width: 310px;
-        padding: 1px;
-        border: 2px solid gray;
-        margin: 6px auto;
-        border-radius: 10px;
-        font-size: 15px;
-        font-family: 'Baloo Tamma 2', cursive;
-    }
 
 #navbar::before{
     content: "";
@@ -53,7 +52,7 @@
 }
 
 
-/Navigation Bar: List Items/
+/*Navigation Bar: List Items*/
 #navbar ul{
     display: flex;
     list-style: none;
@@ -80,14 +79,14 @@
     background-color: white;
 }
 
-/Dropdown menu css/
+/*Dropdown menu css*/
 #navbar li:hover .submenu > li{
     display: block;
     flex-direction: column;
     top: 0px;
 }
 .heading{
-    background-color: #cb202d;
+    background-color: rgba(255, 99, 71, 0.5)
     color: #ffffff;
     margin-bottom: 30px;
     padding: 20px 0 10px 0;
@@ -172,119 +171,103 @@
                 display: block;
                 background-color: greenyellow; 
             }
-</style>
+            .enhance{
+                color: blue;
+                border-radius: 20px;
+                padding: 0px 10px;
+                text-decoration: none;
+                font-family: 'Baloo Tamma 2', cursive;
+                margin: 4px;
+                display: block;
+                background-color: greenyellow;
+                border-radius: 20px;
+                width: 200px;
+            }
+        </style>
     </head>
-    <body>
-        <nav id="navbar">
+<body>
+    <nav id="navbar">
         <div id="logo">
             <img src="Dazzle 'n Dine.png" alt="Dazzle 'n Dine.com">
         </div>
         
     </nav>
-       
+    <div class="heading">
+        <br> <br> <br> <br> <br><br> <br> <br> <br> <br>
+         
+        <center> <h1>&mdash;  ORDER ASSIGNED &mdash; </h1> 
+        <br>
+        <br><br> <br>
+        <a href="assign_order.jsp">Back To Previous Page</a><br> <br> <br>
+           </center> </div>
+        <%   
+   
+  String id=request.getParameter("id");
 
-<div class="heading">
-                <h1>&mdash; Dazzle 'n Dine &mdash; </h1>
-                <h4>&mdash; A-12, Vasant Kunj, Delhi-110095 &mdash;
-                    <br>
-                       &mdash; Email : dazzlendine@gmail.com &mdash;
-                        <br>
-                        &mdash; Contact no. +91 9298082089 &mdash; </h4>
-                
-                <h4><b>&mdash; Collect Cash on Delivery &mdash;</b> </h4>
-                
-            </div>
-<center>
-    <br><br>
-    <form >
-            <div class="form-group">
-                <label><b>Payment Received</b></label>
-                <input type="Float" name="amount" placeholder="Enter Payment Received">
-            </div>
-      <br><br><br><br>
-    
-            <button class="btn" name="btn_proceed">Proceed to complete delivery</button>
-    
-    
-              </form> 
-    </div>  
-
-
-
-
-
-
-<%
     try{
-        if(request.getParameter("btn_proceed")!=null)
-        {
-            int amt = Math.round(Float.parseFloat(request.getParameter("amount"))); 
-            
-            
-            String employee=(String)session.getAttribute("emp");
+            float k,gst,amt=0.0f;
+            String category=null;
             Connection conn=null;
             Statement stat=null;
             Class.forName("com.mysql.jdbc.Driver");
             conn=DriverManager.getConnection("jdbc:mysql://localhost:3306/project","root","");
             stat=conn.createStatement();
+            Statement stat_to_insert=conn.createStatement();
+            Statement stat_to_update=conn.createStatement();
+           
+            PreparedStatement pst = conn.prepareStatement("Update employee set Employee_status='Occupied' where email=?");
+            pst.setString(1,id);
             
-            PreparedStatement pst = conn.prepareStatement("Select customer_id,Bill_Amount from assigned_order where employee_id=? and payment_status like ('Not Paid')");
-            pst.setString(1, employee);
+            pst.executeUpdate(); 
             
-            ResultSet rs = pst.executeQuery();
-            if(!rs.next())
-            {
-                 %>
-                <script type="text/javascript">
-                    alert(" No Order Yet !!!!");
-                </script>
-                <%
-            }
+             
+            String query="SELECT email FROM mycart  where Order_status like('Pending')  ";
+            ResultSet rs =stat.executeQuery(query);
             rs.first();
-            int amnt=0;
-             amnt=Math.round(rs.getFloat(2));
-            //out.println("Payment To Be Collected (in Rs.):"+amnt);
+            String cname=rs.getString(1);
             
-            String customer=rs.getString(1);
-            %>
-            <center><p>
-                    Payment To Be Collected (in Rs.):<%=amnt%> /-         </p> </center>
-                <%
-            if(amt==amnt)     
-            {
-                 %>
-                <script type="text/javascript">
-                    alert(" Payment Received !!!!");
-                </script>
-                <%
-                
-                PreparedStatement query_to_delete=conn.prepareStatement("DELETE FROM mycart WHERE email=?");
-                query_to_delete.setString(1, customer);
-                query_to_delete.executeUpdate();
-                
-                PreparedStatement query_to_update=conn.prepareStatement("update employee set employee_status='Available' WHERE email=?");
-                query_to_update.setString(1, employee);
-                query_to_update.executeUpdate();
-                
-                PreparedStatement query_to_update_payment_status=conn.prepareStatement("update assigned_order set payment_status='Paid' WHERE customer_id=?");
-                query_to_update_payment_status.setString(1, customer);
-                query_to_update_payment_status.executeUpdate();
-                
-                response.sendRedirect("order_complete.jsp");
-            }
-            else
-            {
-                %>
-                <script type="text/javascript">
-                    alert("Inappropriate Payment Received !!!!");
-                </script>
-                <%
-                
-            }
-        }
-        
+            PreparedStatement pstat = conn.prepareStatement("Select sum(total) from mycart where email=? ");
+                    
+                    pstat.setString(1, cname);
+                    ResultSet rss = pstat.executeQuery();
+                    while (rss.next()) 
+                    {
+                    k=rss.getFloat(1);
+                    gst=(k/20) ;
+                    amt=k+gst;
+                    
+                    }            
+            
+            
+            
+            String query_to_insert="insert into assigned_order(employee_id,customer_id,Bill_Amount)values('"+id+"','"+cname+"',"+amt+")";
+             
+            int i=stat_to_insert.executeUpdate(query_to_insert);
+            
+            String query_to_update="Update mycart set Order_status='Assigned' where email like ('"+cname+"')";
+            int j=stat_to_update.executeUpdate(query_to_update);
+            
+    
+                   
+                    
+           
+    
+    
+    
     }catch(Exception ex ){ex.printStackTrace();}
 
-%>
+%> 
+         
+
+
+
+
+
+
+
+     
+
+
+
 </body>
 </html>
